@@ -1,279 +1,233 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex, nofollow">
-<title>Quick Ride - System Control</title>
-
-<!-- Firebase SDK Compat Version -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:#020617;color:#f1f5f9;padding:1rem;min-height:100vh}
-.login-box{max-width:420px;margin:12vh auto;background:rgba(255,255,255,0.05);padding:2.5rem;border-radius:20px;border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(12px)}
-.login-box h2{text-align:center;margin-bottom:1.5rem;color:#2dd4bf}
-.dashboard{display:none;max-width:1300px;margin:0 auto}
-input,textarea,select{width:100%;padding:0.9rem;margin:0.6rem 0;background:#1e293b;border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#f1f5f9;outline:none;font-size:1rem}
-input:focus,textarea:focus{border-color:#10a37f;box-shadow:0 0 0 3px rgba(16,163,127,0.1)}
-.btn{background:linear-gradient(135deg,#10a37f,#2dd4bf);color:white;padding:0.8rem 1.6rem;border:none;border-radius:10px;cursor:pointer;font-weight:600;margin:0.5rem 0.3rem;transition:0.3s}
-.btn:hover{transform:translateY(-2px);box-shadow:0 5px 15px rgba(16,163,127,0.4)}
-.btn-sm{padding:0.4rem 0.8rem;font-size:0.9rem}
-.btn-danger{background:linear-gradient(135deg,#ef4444,#f87171)}
-.nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;padding:1rem;background:rgba(255,255,255,0.05);border-radius:12px}
-.card{background:rgba(255,255,255,0.05);padding:1.5rem;border-radius:12px;margin:1rem 0;border:1px solid rgba(255,255,255,0.1)}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem;margin:2rem 0}
-table{width:100%;border-collapse:collapse;margin-top:1rem}
-th,td{padding:12px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.1)}
-th{background:rgba(16,163,127,0.2);color:#2dd4bf}
-.status{padding:4px 10px;border-radius:20px;font-size:12px}
-.active{background:#166534;color:#dcfce7}
-.banned{background:#991b1b;color:#fee2e2}
-.error{color:#ef4444;text-align:center;margin-top:1rem;display:none}
-.tabs{display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap}
-.tab{padding:0.7rem 1.2rem;background:rgba(255,255,255,0.05);border-radius:8px;cursor:pointer}
-.tab.active{background:#10a37f}
-.hidden{display:none}
-.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:none;justify-content:center;align-items:center;z-index:100}
-.modal-content{background:#1e293b;padding:2rem;border-radius:12px;width:90%;max-width:500px}
-.loading{text-align:center;padding:2rem;color:#64748b}
-</style>
+  <title>Admin Panel - MyFriendHub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:Arial; }
+    body { background:#f5f5f5; padding:20px; }
+    .header { background:#4285f4; color:white; padding:15px; border-radius:8px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; }
+    .tabs { display:flex; gap:10px; margin-bottom:20px; }
+    .tab { padding:10px 20px; background:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold; }
+    .tab.active { background:#4285f4; color:white; }
+    .section { display:none; }
+    .section.active { display:block; }
+    .card { background:white; padding:15px; border-radius:8px; margin:10px 0; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+    .status { padding:3px 8px; border-radius:4px; font-size:12px; font-weight:bold; }
+    .pending { background:#ff9800; color:white; }
+    .confirmed { background:#4caf50; color:white; }
+    .cancelled { background:#f44336; color:white; }
+    button { padding:8px 15px; border:none; border-radius:4px; cursor:pointer; margin:5px 5px 0 0; }
+    .confirm-btn { background:#4caf50; color:white; }
+    .cancel-btn { background:#f44336; color:white; }
+    .delete-btn { background:#666; color:white; }
+    .add-btn { background:#4285f4; color:white; }
+    input, select { width:100%; padding:10px; margin:5px 0; border:1px solid #ddd; border-radius:4px; }
+    .form-group { margin:15px 0; }
+    label { font-weight:bold; display:block; margin-bottom:5px; }
+    #loginPanel { text-align:center; margin-top:100px; }
+    .login-btn { background:#db4437; color:white; padding:12px 30px; font-size:16px; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  </style>
 </head>
 <body>
-
-<!-- Login Section -->
-<div class="login-box" id="loginBox">
-  <h2>🔐 Quick Ride Admin</h2>
-  <input type="email" id="email" placeholder="khasbaskhalisa@gmail.com" autocomplete="off">
-  <input type="password" id="password" placeholder="Password">
-  <button class="btn" style="width:100%" onclick="login()">Login to Panel</button>
-  <p class="error" id="errorMsg">Invalid credentials</p>
-</div>
-
-<!-- Dashboard Section -->
-<div class="dashboard" id="dashboard">
-  <div class="nav">
-    <h2>🚗 Quick Ride Control Panel</h2>
-    <div>
-      <span id="adminEmail" style="margin-right:1rem;color:#2dd4bf"></span>
-      <button class="btn" onclick="logout()">Logout</button>
-    </div>
+  <div id="loginPanel">
+    <h2>Admin Login</h2>
+    <button class="login-btn" onclick="login()">Login with Google</button>
+    <p id="loginError" style="color:red;margin-top:10px"></p>
   </div>
 
-  <div class="tabs">
-    <div class="tab active" onclick="showTab('cars')">Cars</div>
-    <div class="tab" onclick="showTab('users')">Users</div>
-    <div class="tab" onclick="showTab('stats')">Stats</div>
-  </div>
-
-  <!-- Cars Tab -->
-  <div id="carsTab">
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <h3>All Cars</h3>
-        <button class="btn btn-sm" onclick="openAddCarModal()">+ Add Car</button>
+  <div id="adminPanel" style="display:none">
+    <div class="header">
+      <h2>MyFriendHub - Admin Panel</h2>
+      <div>
+        <span id="adminEmail"></span>
+        <button onclick="logout()" style="background:white;color:#4285f4">Logout</button>
       </div>
-      <div id="carsLoading" class="loading">Loading cars...</div>
-      <table id="carsTable" style="display:none">
-        <thead>
-          <tr>
-            <th>Car Name</th>
-            <th>Number</th>
-            <th>Type</th>
-            <th>Driver</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="carsBody"></tbody>
-      </table>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('bookings', event)">📋 Bookings</button>
+      <button class="tab" onclick="showTab('cars', event)">🚗 Cars</button>
+      <button class="tab" onclick="showTab('drops', event)">📍 Drop Locations</button>
+    </div>
+
+    <div id="bookings" class="section active">
+      <h3>All Bookings</h3>
+      <div id="bookingsList"></div>
+    </div>
+
+    <div id="cars" class="section">
+      <h3>Car Management</h3>
+      <div class="card">
+        <h4>Add New Car</h4>
+        <div class="grid">
+          <div class="form-group"><label>Car Name</label><input id="carName" placeholder="Toyota Innova"></div>
+          <div class="form-group"><label>Car Number</label><input id="carNumber" placeholder="WB-01-1234"></div>
+          <div class="form-group"><label>Driver Name</label><input id="driverName" placeholder="Rahul Sharma"></div>
+          <div class="form-group"><label>Driver Phone</label><input id="driverPhone" placeholder="+91 9876543210"></div>
+          <div class="form-group"><label>Price per KM (₹)</label><input id="carPrice" type="number" placeholder="15"></div>
+          <div class="form-group"><label>Quantity</label><input id="carQuantity" type="number" placeholder="5"></div>
+        </div>
+        <button class="add-btn" onclick="addCar()">Add Car</button>
+      </div>
+      <h4>All Cars</h4>
+      <div id="carsList"></div>
+    </div>
+
+    <div id="drops" class="section">
+      <h3>Popular Drop Locations</h3>
+      <div class="card">
+        <h4>Add Drop Location</h4>
+        <div class="form-group"><label>Location Name</label><input id="dropName" placeholder="Durgapur Railway Station"></div>
+        <div class="form-group"><label>Address</label><input id="dropAddress" placeholder="Full Address"></div>
+        <button class="add-btn" onclick="addDrop()">Add Location</button>
+      </div>
+      <h4>All Drop Locations</h4>
+      <div id="dropsList"></div>
     </div>
   </div>
 
-  <!-- Users Tab -->
-  <div id="usersTab" class="hidden">
-    <div class="card">
-      <h3>All Users</h3>
-      <p style="color:#64748b;margin-top:1rem">Users data এর জন্য Firebase rules এ 'users' node add কর</p>
-    </div>
-  </div>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBbmHhNYPFLMgeCkMj07YoUdtM2bvD8-9o",
+      authDomain: "my-friend-hub.firebaseapp.com",
+      databaseURL: "https://my-friend-hub-default-rtdb.firebaseio.com",
+      projectId: "my-friend-hub",
+      storageBucket: "my-friend-hub.firebasestorage.app",
+      messagingSenderId: "1052688727503",
+      appId: "1:1052688727503:web:0a39c289e8b17966b4a6ee"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
 
-  <!-- Stats Tab -->
-  <div id="statsTab" class="hidden">
-    <div class="stats">
-      <div class="card"><h3>Total Cars</h3><p style="font-size:2rem" id="totalCars">0</p></div>
-      <div class="card"><h3>Database</h3><p style="font-size:1rem">asia-southeast1</p></div>
-    </div>
-  </div>
-</div>
-
-<!-- Add Car Modal -->
-<div class="modal" id="addCarModal">
-  <div class="modal-content">
-    <h3 style="margin-bottom:1rem">Add New Car</h3>
-    <input type="text" id="carName" placeholder="Car Name - Swift Dzire">
-    <input type="text" id="carNumber" placeholder="Car Number - WB 01 AB 1234">
-    <select id="carType">
-      <option value="Sedan">Sedan</option>
-      <option value="SUV">SUV</option>
-      <option value="Hatchback">Hatchback</option>
-      <option value="Auto">Auto</option>
-    </select>
-    <input type="text" id="driverName" placeholder="Driver Name">
-    <button class="btn" onclick="addCar()">Save Car</button>
-    <button class="btn btn-danger" onclick="closeAddCarModal()">Cancel</button>
-  </div>
-</div>
-
-<script>
-// ===== তোর Firebase Config =====
-const firebaseConfig = {
-  apiKey: "AIzaSyBySOEfSbkpl4csyqckfX-kLeIoD-85VYs",
-  authDomain: "my-friend-hub.firebaseapp.com",
-  databaseURL: "https://my-friend-hub-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "my-friend-hub",
-  storageBucket: "my-friend-hub.firebasestorage.app",
-  messagingSenderId: "1084141933087",
-  appId: "1:1084141933087:web:4fc11e621846e16c427b2a",
-  measurementId: "G-ZSC22NX41Z"
-};
-
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.database();
-
-// ===== AUTH =====
-function login() {
-  const email = document.getElementById('email').value;
-  const pass = document.getElementById('password').value;
-  const error = document.getElementById('errorMsg');
-
-  auth.signInWithEmailAndPassword(email, pass)
-  .then(() => {
-      document.getElementById('loginBox').style.display = 'none';
-      document.getElementById('dashboard').style.display = 'block';
-      document.getElementById('adminEmail').innerText = email;
-      loadCars();
-    })
-  .catch((err) => {
-      error.style.display = 'block';
-      error.innerText = err.message;
-      setTimeout(() => error.style.display = 'none', 3000);
+    auth.onAuthStateChanged(async user => {
+      if (user) {
+        const adminSnap = await db.ref('admins/' + user.uid).once('value');
+        if (adminSnap.exists()) {
+          document.getElementById('loginPanel').style.display = 'none';
+          document.getElementById('adminPanel').style.display = 'block';
+          document.getElementById('adminEmail').innerText = user.email;
+          loadBookings(); loadCars(); loadDrops();
+        } else {
+          document.getElementById('loginError').innerText = 'Access Denied. Admin only.';
+          auth.signOut();
+        }
+      } else {
+        document.getElementById('loginPanel').style.display = 'block';
+        document.getElementById('adminPanel').style.display = 'none';
+      }
     });
-}
 
-function logout() {
-  auth.signOut();
-  document.getElementById('loginBox').style.display = 'block';
-  document.getElementById('dashboard').style.display = 'none';
-}
+    function login() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
+    function logout() { auth.signOut(); }
 
-auth.onAuthStateChanged(user => {
-  if (user) {
-    document.getElementById('loginBox').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
-    document.getElementById('adminEmail').innerText = user.email;
-    loadCars();
-  }
-});
+    function showTab(tabName, event) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById(tabName).classList.add('active');
+    }
 
-// ===== CARS CRUD =====
-function loadCars() {
-  db.ref('cars').on('value', (snapshot) => {
-    const cars = snapshot.val();
-    const tbody = document.getElementById('carsBody');
-    const loading = document.getElementById('carsLoading');
-    const table = document.getElementById('carsTable');
-
-    tbody.innerHTML = '';
-    let count = 0;
-
-    if(cars) {
-      Object.keys(cars).forEach(key => {
-        const car = cars[key];
-        count++;
-        tbody.innerHTML += `
-          <tr>
-            <td>${car.name}</td>
-            <td>${car.number}</td>
-            <td>${car.type}</td>
-            <td>${car.driver}</td>
-            <td>
-              <button class="btn btn-sm btn-danger" onclick="deleteCar('${key}')">Delete</button>
-            </td>
-          </tr>
-        `;
+    function loadBookings() {
+      db.ref("bookings").orderByChild("timestamp").on('value', (snap) => {
+        const div = document.getElementById("bookingsList");
+        div.innerHTML = "";
+        if (!snap.exists()) { div.innerHTML = "<p>No bookings yet</p>"; return; }
+        const bookings = [];
+        snap.forEach(child => bookings.push({id: child.key, ...child.val()}));
+        bookings.reverse().forEach(d => {
+          const date = new Date(d.timestamp).toLocaleString();
+          div.innerHTML += `
+            <div class="card">
+              <span class="status ${d.status}">${d.status.toUpperCase()}</span>
+              <p><b>User:</b> ${d.userName} (${d.userEmail})</p>
+              <p><b>Phone:</b> ${d.userPhone}</p>
+              <p><b>Car:</b> ${d.carName} - Driver: ${d.driverName} (${d.driverPhone})</p>
+              <p><b>Pickup:</b> ${d.pickup.address}</p>
+              <p><b>Drop:</b> ${d.drop.address}</p>
+              <p><b>Price:</b> ₹${d.price}/km</p>
+              <p><b>Time:</b> ${date}</p>
+              ${d.status === 'pending' ? `<button class="confirm-btn" onclick="updateStatus('${d.id}', 'confirmed')">Confirm</button><button class="cancel-btn" onclick="updateStatus('${d.id}', 'cancelled')">Cancel</button>` : ''}
+              <button class="delete-btn" onclick="deleteBooking('${d.id}')">Delete</button>
+            </div>`;
+        });
       });
     }
 
-    document.getElementById('totalCars').innerText = count;
-    loading.style.display = 'none';
-    table.style.display = 'table';
+    function updateStatus(id, status) { db.ref("bookings/" + id + "/status").set(status); }
+    function deleteBooking(id) { if (confirm('Delete this booking?')) db.ref("bookings/" + id).remove(); }
 
-    if(count === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#64748b">No cars found. Add কর</td></tr>';
+    async function addCar() {
+      const car = {
+        name: document.getElementById('carName').value,
+        number: document.getElementById('carNumber').value,
+        driverName: document.getElementById('driverName').value,
+        driverPhone: document.getElementById('driverPhone').value,
+        price: parseFloat(document.getElementById('carPrice').value),
+        quantity: parseInt(document.getElementById('carQuantity').value),
+        createdAt: firebase.database.ServerValue.TIMESTAMP
+      };
+      if (!car.name || !car.number || !car.driverName || !car.driverPhone || !car.price || !car.quantity) return alert('সব Field Fill কর');
+      await db.ref('cars').push(car);
+      alert('Car Added Successfully!');
+      document.getElementById('carName').value = ''; document.getElementById('carNumber').value = '';
+      document.getElementById('driverName').value = ''; document.getElementById('driverPhone').value = '';
+      document.getElementById('carPrice').value = ''; document.getElementById('carQuantity').value = '';
     }
-  });
-}
 
-function openAddCarModal() {
-  if(auth.currentUser?.email!== 'khasbaskhalisa@gmail.com') {
-    alert('Permission নাই! শুধু khasbaskhalisa@gmail.com car add করতে পারবে');
-    return;
-  }
-  document.getElementById('addCarModal').style.display = 'flex';
-}
+    function loadCars() {
+      db.ref("cars").orderByChild("createdAt").on('value', (snap) => {
+        const div = document.getElementById("carsList");
+        div.innerHTML = "";
+        if (!snap.exists()) { div.innerHTML = "<p>No cars added yet</p>"; return; }
+        const cars = [];
+        snap.forEach(child => cars.push({id: child.key, ...child.val()}));
+        cars.reverse().forEach(c => {
+          div.innerHTML += `
+            <div class="card">
+              <h4>${c.name} (${c.number})</h4>
+              <p><b>Driver:</b> ${c.driverName} - ${c.driverPhone}</p>
+              <p><b>Price:</b> ₹${c.price}/km</p>
+              <p><b>Available:</b> ${c.quantity} cars</p>
+              <button class="delete-btn" onclick="deleteCar('${c.id}')">Delete Car</button>
+            </div>`;
+        });
+      });
+    }
 
-function closeAddCarModal() {
-  document.getElementById('addCarModal').style.display = 'none';
-}
+    function deleteCar(id) { if (confirm('Delete this car?')) db.ref("cars/" + id).remove(); }
 
-function addCar() {
-  const carData = {
-    name: document.getElementById('carName').value,
-    number: document.getElementById('carNumber').value,
-    type: document.getElementById('carType').value,
-    driver: document.getElementById('driverName').value,
-    createdAt: Date.now(),
-    addedBy: auth.currentUser.email
-  };
+    async function addDrop() {
+      const drop = {
+        name: document.getElementById('dropName').value,
+        address: document.getElementById('dropAddress').value,
+        createdAt: firebase.database.ServerValue.TIMESTAMP
+      };
+      if (!drop.name || !drop.address) return alert('সব Field Fill কর');
+      await db.ref('drops').push(drop);
+      alert('Drop Location Added!');
+      document.getElementById('dropName').value = ''; document.getElementById('dropAddress').value = '';
+    }
 
-  if(!carData.name ||!carData.number) {
-    alert('Car name আর number লাগবে');
-    return;
-  }
+    function loadDrops() {
+      db.ref("drops").orderByChild("createdAt").on('value', (snap) => {
+        const div = document.getElementById("dropsList");
+        div.innerHTML = "";
+        if (!snap.exists()) { div.innerHTML = "<p>No drop locations added yet</p>"; return; }
+        const drops = [];
+        snap.forEach(child => drops.push({id: child.key, ...child.val()}));
+        drops.reverse().forEach(d => {
+          div.innerHTML += `<div class="card"><h4>${d.name}</h4><p>${d.address}</p><button class="delete-btn" onclick="deleteDrop('${d.id}')">Delete</button></div>`;
+        });
+      });
+    }
 
-  db.ref('cars').push(carData)
-  .then(() => {
-      closeAddCarModal();
-      document.getElementById('carName').value = '';
-      document.getElementById('carNumber').value = '';
-      document.getElementById('driverName').value = '';
-    })
-  .catch(err => alert('Error: ' + err.message));
-}
-
-function deleteCar(carId) {
-  if(auth.currentUser?.email!== 'khasbaskhalisa@gmail.com') {
-    alert('Permission নাই!');
-    return;
-  }
-  if(confirm('Car টা delete করবি?')) {
-    db.ref('cars/' + carId).remove();
-  }
-}
-
-function showTab(tab) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  event.target.classList.add('active');
-
-  document.getElementById('carsTab').classList.add('hidden');
-  document.getElementById('usersTab').classList.add('hidden');
-  document.getElementById('statsTab').classList.add('hidden');
-  document.getElementById(tab + 'Tab').classList.remove('hidden');
-}
-</script>
+    function deleteDrop(id) { if (confirm('Delete this location?')) db.ref("drops/" + id).remove(); }
+  </script>
 </body>
 </html>
