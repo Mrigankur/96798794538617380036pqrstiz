@@ -190,7 +190,7 @@
 
     // Admin Login
     window.adminLogin = async () => {
-      try { await signInWithPopup(auth, new GoogleAuthProvider()); } 
+      try { await signInWithRedirect(auth, new GoogleAuthProvider()); } 
       catch (err) { alert("Login Error: " + err.message); }
     }
 
