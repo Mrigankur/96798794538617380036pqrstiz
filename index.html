@@ -37,6 +37,16 @@
     .userInfo img { width: 35px; height: 35px; border-radius: 50%; }
     .logoutBtn { background: #ef4444; border: none; padding: 8px 16px; border-radius: 20px; color: white; cursor: pointer; }
 
+    /* Stats Panel (NEW Feature) */
+    .statsRow {
+      display: flex; gap: 15px; padding: 0 20px; max-width: 1400px; margin: 20px auto 0;
+    }
+    .statCard {
+      background: #1e293b; padding: 15px 25px; border-radius: 12px; border-left: 4px solid #10a37f; min-width: 150px;
+    }
+    .statCard h5 { color: #94a3b8; font-size: 12px; text-transform: uppercase; }
+    .statCard p { font-size: 24px; font-weight: 700; margin-top: 5px; }
+
     /* Tabs */
     .tabs { display: flex; gap: 10px; padding: 20px; max-width: 1400px; margin: 0 auto; }
     .tabBtn {
@@ -48,18 +58,25 @@
     .tabContent.active { display: block; animation: fadeIn 0.4s ease; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+    /* Filter & Search Inputs (NEW Feature) */
+    .filterSelect, .searchBar {
+      padding: 10px 15px; border-radius: 8px; border: none; background: #111827;
+      color: white; outline: none; margin-bottom: 15px; width: 100%; max-width: 300px;
+    }
+    .filterSelect:focus, .searchBar:focus { box-shadow: 0 0 0 2px #10a37f; }
+
     /* Tables */
     table {
       width: 100%; background: #1e293b; border-radius: 15px; overflow: hidden;
-      border-collapse: collapse; margin-top: 20px;
+      border-collapse: collapse; margin-top: 5px;
     }
     th, td { padding: 15px; text-align: left; border-bottom: 1px solid #334155; }
     th { background: #0f172a; font-weight: 700; }
     tr:hover { background: #334155; }
     .status { padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: 700; }
-    .pending { background: #f59e0b; } 
-    .confirmed { background: #10a37f; } 
-    .cancelled { background: #ef4444; }
+    .pending { background: #f59e0b; color: black; } 
+    .confirmed { background: #10a37f; color: white; } 
+    .cancelled { background: #ef4444; color: white; }
     .actionBtn {
       padding: 6px 14px; border: none; border-radius: 8px; cursor: pointer; 
       font-size: 12px; font-weight: 600; margin: 2px;
@@ -81,7 +98,7 @@
 
     /* Car Cards */
     .carsGrid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 10px;
     }
     .carCard {
       background: #1e293b; border-radius: 15px; overflow: hidden; position: relative;
@@ -93,30 +110,40 @@
     .deleteBtn {
       position: absolute; top: 10px; right: 10px; background: #ef4444; color: white;
       border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 16px;
+      z-index: 10;
     }
   </style>
 </head>
 <body>
 
-  <!-- Login -->
   <div class="loginBox" id="loginBox">
     <div class="loginCard">
       <h2>🔐 Admin Panel</h2>
-      <p>Only Admin Access</p>
+      <p style="color: #94a3b8; margin-top: 5px;">Only Authorized Access</p>
       <button class="googleBtn" onclick="adminLogin()">Continue With Google</button>
     </div>
   </div>
 
-  <!-- Main App -->
   <div id="mainApp" style="display:none;">
     <div class="header">
       <h2>🚗 QuickRide Admin</h2>
       <div class="userInfo">
-        <img id="adminPhoto" src="">
+        <img id="adminPhoto" src="" alt="Admin Profile">
         <div>
-          <div id="adminName" style="font-size:14px;"></div>
+          <div id="adminName" style="font-size:14px; font-weight: 600;"></div>
           <button class="logoutBtn" onclick="adminLogout()">Logout</button>
         </div>
+      </div>
+    </div>
+
+    <div class="statsRow">
+      <div class="statCard">
+        <h5>Total Bookings</h5>
+        <p id="totalBookingsCount">0</p>
+      </div>
+      <div class="statCard" style="border-left-color: #007bff;">
+        <h5>Total Registered Cars</h5>
+        <p id="totalCarsCount">0</p>
       </div>
     </div>
 
@@ -125,10 +152,18 @@
       <button class="tabBtn" onclick="openTab('cars')">🚗 Manage Cars</button>
     </div>
 
-    <!-- Bookings Tab -->
     <div class="tabContent active" id="bookings">
-      <h3>All User Bookings</h3>
-      <table>
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+        <h3>All User Bookings</h3>
+        <select id="bookingStatusFilter" class="filterSelect" onchange="loadAllBookings()">
+          <option value="all">🔍 All Status</option>
+          <option value="pending">⏳ Pending</option>
+          <option value="confirmed">✅ Confirmed</option>
+          <option value="cancelled">❌ Cancelled</option>
+        </select>
+      </div>
+      
+      <table style="width: 100%;">
         <thead>
           <tr>
             <th>User Name</th>
@@ -144,7 +179,6 @@
       </table>
     </div>
 
-    <!-- Cars Tab -->
     <div class="tabContent" id="cars">
       <h3>Add New Car</h3>
       <div class="addForm">
@@ -163,7 +197,11 @@
         <input type="text" id="carImage" placeholder="Image URL">
         <button class="addBtn" onclick="addCar()">Add Car</button>
       </div>
-      <h3>All Cars</h3>
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-top: 20px;">
+        <h3>All Cars</h3>
+        <input type="text" id="carSearchInput" class="searchBar" placeholder="🔎 Search car by name..." oninput="loadAllCars()">
+      </div>
       <div class="carsGrid" id="carsGrid"></div>
     </div>
   </div>
@@ -190,8 +228,12 @@
 
     // Admin Login
     window.adminLogin = async () => {
-      try { await signInWithRedirect(auth, new GoogleAuthProvider()); } 
-      catch (err) { alert("Login Error: " + err.message); }
+      try { 
+        const provider = new GoogleAuthProvider();
+        await signInWithPopup(auth, provider); 
+      } catch (err) { 
+        alert("Login Error: " + err.message); 
+      }
     }
 
     // Logout
@@ -203,7 +245,7 @@
         document.getElementById("loginBox").style.display = "none";
         document.getElementById("mainApp").style.display = "block";
         document.getElementById("adminName").textContent = user.displayName;
-        document.getElementById("adminPhoto").src = user.photoURL;
+        document.getElementById("adminPhoto").src = user.photoURL || "https://via.placeholder.com/35";
         loadAllBookings();
         loadAllCars();
       } else if (user) {
@@ -223,17 +265,25 @@
       document.getElementById(tabName).classList.add('active');
     }
 
-    // Load All Bookings
-    async function loadAllBookings() {
+    // Load All Bookings + Filter Logic
+    function loadAllBookings() {
+      const selectedFilter = document.getElementById("bookingStatusFilter").value;
+
       onValue(ref(db, 'bookings'), async (snap) => {
         const tbody = document.getElementById("bookingsTable");
         tbody.innerHTML = "";
         const bookings = snap.val() || {};
         
+        // Live Stat Counter Update
+        document.getElementById("totalBookingsCount").textContent = Object.keys(bookings).length;
+        
         for (const [key, booking] of Object.entries(bookings)) {
+          // Filter Condition
+          if (selectedFilter !== "all" && booking.status !== selectedFilter) continue;
+
           const userSnap = await get(ref(db, 'users/' + booking.userId));
           const userData = userSnap.val() || {};
-          const userName = userData.name || 'Unknown';
+          const userName = userData.name || 'Unknown User';
           const userPhone = userData.phone || 'N/A';
           
           tbody.innerHTML += `
@@ -242,8 +292,8 @@
               <td>${userPhone}</td>
               <td>${booking.carName || 'N/A'}</td>
               <td>📍 ${booking.pickupLocation || 'N/A'} → ${booking.dropLocation || 'N/A'}</td>
-              <td><span class="status ${booking.status}">${booking.status.toUpperCase()}</span></td>
-              <td>${new Date(booking.timestamp).toLocaleString()}</td>
+              <td><span class="status ${booking.status}">${booking.status ? booking.status.toUpperCase() : 'PENDING'}</span></td>
+              <td>${booking.timestamp ? new Date(booking.timestamp).toLocaleString() : 'N/A'}</td>
               <td>
                 ${booking.status === 'pending' ? `
                   <button class="actionBtn confirmBtn" onclick="updateBooking('${key}', 'confirmed')">Confirm</button>
@@ -258,8 +308,12 @@
 
     // Update Booking Status
     window.updateBooking = async (bookingId, status) => {
-      await update(ref(db, 'bookings/' + bookingId), { status: status });
-      alert(Booking ${status}!);
+      try {
+        await update(ref(db, 'bookings/' + bookingId), { status: status });
+        alert(`Booking ${status}!`);
+      } catch (err) {
+        alert("Permission Denied: " + err.message);
+      }
     }
 
     // Add Car
@@ -267,39 +321,54 @@
       const carData = {
         name: document.getElementById("carName").value,
         number: document.getElementById("carNumber").value,
-        price: document.getElementById("carPrice").value,
+        price: Number(document.getElementById("carPrice").value),
         driverName: document.getElementById("driverName").value,
         driverPhone: document.getElementById("driverPhone").value,
-        seats: document.getElementById("carSeats").value,
-        ac: document.getElementById("carAC").value,
+        seats: Number(document.getElementById("carSeats").value),
+        ac: document.getElementById("carAC").value === "AC",
         fuel: document.getElementById("carFuel").value,
-        quantity: document.getElementById("carQuantity").value,
-        image: document.getElementById("carImage").value,
-        rating: "4.5"
+        quantity: Number(document.getElementById("carQuantity").value),
+        image: document.getElementById("carImage").value
       };
       
-      if (Object.values(carData).some(v => !v)) return alert("সব Field ভর");
+      if (!carData.name || !carData.number || !carData.price || !carData.driverName || !carData.image) {
+        return alert("সব Field ঠিকঠাক পূরণ কর!");
+      }
       
-      await push(ref(db, 'cars'), carData);
-      alert("Car Added!");
-      document.querySelectorAll('.addForm input').forEach(inp => inp.value = '');
+      try {
+        await push(ref(db, 'cars'), carData);
+        alert("Car Added Successfully!");
+        document.querySelectorAll('.addForm input').forEach(inp => inp.value = '');
+      } catch (err) {
+        alert("Database error: " + err.message);
+      }
     }
 
-    // Load All Cars
+    // Load All Cars + Search Filter Logic
     function loadAllCars() {
+      const searchKeyword = document.getElementById("carSearchInput").value.toLowerCase();
+
       onValue(ref(db, 'cars'), (snap) => {
         const grid = document.getElementById("carsGrid");
         grid.innerHTML = "";
+        
+        // Live Stat Counter Update
+        document.getElementById("totalCarsCount").textContent = snap.numChildren();
+
         snap.forEach((child) => {
           const car = child.val();
+          
+          // Search Condition
+          if (searchKeyword && !car.name.toLowerCase().includes(searchKeyword)) return;
+
           grid.innerHTML += `
             <div class="carCard">
               <button class="deleteBtn" onclick="deleteCar('${child.key}')">×</button>
-              <img src="${car.image}" class="carImg">
+              <img src="${car.image || 'https://via.placeholder.com/280x180'}" class="carImg">
               <div class="carInfo">
                 <h4>${car.name}</h4>
                 <p>₹${car.price}/day | ${car.seats} Seats</p>
-                <p>Qty: ${car.quantity} | ${car.ac}</p>
+                <p>Qty: ${car.quantity} | ${car.ac ? 'AC' : 'Non-AC'}</p>
               </div>
             </div>
           `;
@@ -310,8 +379,12 @@
     // Delete Car
     window.deleteCar = async (carId) => {
       if (confirm("Delete করবি?")) {
-        await remove(ref(db, 'cars/' + carId));
-        alert("Deleted!");
+        try {
+          await remove(ref(db, 'cars/' + carId));
+          alert("Deleted!");
+        } catch (err) {
+          alert("Error deleting car: " + err.message);
+        }
       }
     }
   </script>
