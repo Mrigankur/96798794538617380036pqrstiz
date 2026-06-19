@@ -1,233 +1,319 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Admin Panel - MyFriendHub</title>
+  <title>QuickRide Admin Panel</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    * { margin:0; padding:0; box-sizing:border-box; font-family:Arial; }
-    body { background:#f5f5f5; padding:20px; }
-    .header { background:#4285f4; color:white; padding:15px; border-radius:8px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; }
-    .tabs { display:flex; gap:10px; margin-bottom:20px; }
-    .tab { padding:10px 20px; background:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold; }
-    .tab.active { background:#4285f4; color:white; }
-    .section { display:none; }
-    .section.active { display:block; }
-    .card { background:white; padding:15px; border-radius:8px; margin:10px 0; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
-    .status { padding:3px 8px; border-radius:4px; font-size:12px; font-weight:bold; }
-    .pending { background:#ff9800; color:white; }
-    .confirmed { background:#4caf50; color:white; }
-    .cancelled { background:#f44336; color:white; }
-    button { padding:8px 15px; border:none; border-radius:4px; cursor:pointer; margin:5px 5px 0 0; }
-    .confirm-btn { background:#4caf50; color:white; }
-    .cancel-btn { background:#f44336; color:white; }
-    .delete-btn { background:#666; color:white; }
-    .add-btn { background:#4285f4; color:white; }
-    input, select { width:100%; padding:10px; margin:5px 0; border:1px solid #ddd; border-radius:4px; }
-    .form-group { margin:15px 0; }
-    label { font-weight:bold; display:block; margin-bottom:5px; }
-    #loginPanel { text-align:center; margin-top:100px; }
-    .login-btn { background:#db4437; color:white; padding:12px 30px; font-size:16px; }
-    .grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: white; min-height: 100vh;
+    }
+
+    /* Login Box */
+    .loginBox { 
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.95); display: flex; justify-content: center; align-items: center; z-index: 99999;
+    }
+    .loginCard {
+      background: linear-gradient(135deg, #1e293b, #0f172a); padding: 40px; border-radius: 28px;
+      text-align: center; border: 1px solid rgba(16, 163, 127, 0.3); max-width: 400px; width: 90%;
+      animation: slideUp 0.4s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .googleBtn { 
+      background: white; color: black; width: 100%; padding: 14px; border: none; 
+      border-radius: 35px; font-weight: 700; cursor: pointer; margin-top: 20px; font-size: 16px; 
+    }
+
+    /* Header */
+    .header {
+      background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(20px);
+      padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; 
+      position: sticky; top: 0; z-index: 100;
+    }
+    .userInfo { display: flex; align-items: center; gap: 10px; }
+    .userInfo img { width: 35px; height: 35px; border-radius: 50%; }
+    .logoutBtn { background: #ef4444; border: none; padding: 8px 16px; border-radius: 20px; color: white; cursor: pointer; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 10px; padding: 20px; max-width: 1400px; margin: 0 auto; }
+    .tabBtn {
+      background: #1e293b; border: none; padding: 12px 24px; border-radius: 12px; 
+      color: white; cursor: pointer; font-weight: 600; transition: 0.3s;
+    }
+    .tabBtn.active { background: #10a37f; }
+    .tabContent { display: none; padding: 20px; max-width: 1400px; margin: 0 auto; }
+    .tabContent.active { display: block; animation: fadeIn 0.4s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* Tables */
+    table {
+      width: 100%; background: #1e293b; border-radius: 15px; overflow: hidden;
+      border-collapse: collapse; margin-top: 20px;
+    }
+    th, td { padding: 15px; text-align: left; border-bottom: 1px solid #334155; }
+    th { background: #0f172a; font-weight: 700; }
+    tr:hover { background: #334155; }
+    .status { padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+    .pending { background: #f59e0b; } 
+    .confirmed { background: #10a37f; } 
+    .cancelled { background: #ef4444; }
+    .actionBtn {
+      padding: 6px 14px; border: none; border-radius: 8px; cursor: pointer; 
+      font-size: 12px; font-weight: 600; margin: 2px;
+    }
+    .confirmBtn { background: #10a37f; color: white; }
+    .cancelBtn { background: #ef4444; color: white; }
+
+    /* Add Car Form */
+    .addForm {
+      background: #1e293b; padding: 25px; border-radius: 20px; margin-bottom: 20px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;
+    }
+    .addForm input, .addForm select {
+      padding: 12px; border-radius: 10px; border: none; background: #111827; 
+      color: white; font-size: 14px; outline: none;
+    }
+    .addForm input:focus { box-shadow: 0 0 0 2px #10a37f; }
+    .addBtn { background: #10a37f; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; grid-column: 1 / -1; }
+
+    /* Car Cards */
+    .carsGrid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px;
+    }
+    .carCard {
+      background: #1e293b; border-radius: 15px; overflow: hidden; position: relative;
+      animation: popIn 0.4s ease;
+    }
+    @keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+    .carImg { width: 100%; height: 180px; object-fit: cover; }
+    .carInfo { padding: 15px; }
+    .deleteBtn {
+      position: absolute; top: 10px; right: 10px; background: #ef4444; color: white;
+      border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 16px;
+    }
   </style>
 </head>
 <body>
-  <div id="loginPanel">
-    <h2>Admin Login</h2>
-    <button class="login-btn" onclick="login()">Login with Google</button>
-    <p id="loginError" style="color:red;margin-top:10px"></p>
+
+  <!-- Login -->
+  <div class="loginBox" id="loginBox">
+    <div class="loginCard">
+      <h2>🔐 Admin Panel</h2>
+      <p>Only Admin Access</p>
+      <button class="googleBtn" onclick="adminLogin()">Continue With Google</button>
+    </div>
   </div>
 
-  <div id="adminPanel" style="display:none">
+  <!-- Main App -->
+  <div id="mainApp" style="display:none;">
     <div class="header">
-      <h2>MyFriendHub - Admin Panel</h2>
-      <div>
-        <span id="adminEmail"></span>
-        <button onclick="logout()" style="background:white;color:#4285f4">Logout</button>
+      <h2>🚗 QuickRide Admin</h2>
+      <div class="userInfo">
+        <img id="adminPhoto" src="">
+        <div>
+          <div id="adminName" style="font-size:14px;"></div>
+          <button class="logoutBtn" onclick="adminLogout()">Logout</button>
+        </div>
       </div>
     </div>
 
     <div class="tabs">
-      <button class="tab active" onclick="showTab('bookings', event)">📋 Bookings</button>
-      <button class="tab" onclick="showTab('cars', event)">🚗 Cars</button>
-      <button class="tab" onclick="showTab('drops', event)">📍 Drop Locations</button>
+      <button class="tabBtn active" onclick="openTab('bookings')">📋 All Bookings</button>
+      <button class="tabBtn" onclick="openTab('cars')">🚗 Manage Cars</button>
     </div>
 
-    <div id="bookings" class="section active">
-      <h3>All Bookings</h3>
-      <div id="bookingsList"></div>
+    <!-- Bookings Tab -->
+    <div class="tabContent active" id="bookings">
+      <h3>All User Bookings</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>User Name</th>
+            <th>Phone</th>
+            <th>Car Name</th>
+            <th>Location</th>
+            <th>Status</th>
+            <th>Time</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="bookingsTable"></tbody>
+      </table>
     </div>
 
-    <div id="cars" class="section">
-      <h3>Car Management</h3>
-      <div class="card">
-        <h4>Add New Car</h4>
-        <div class="grid">
-          <div class="form-group"><label>Car Name</label><input id="carName" placeholder="Toyota Innova"></div>
-          <div class="form-group"><label>Car Number</label><input id="carNumber" placeholder="WB-01-1234"></div>
-          <div class="form-group"><label>Driver Name</label><input id="driverName" placeholder="Rahul Sharma"></div>
-          <div class="form-group"><label>Driver Phone</label><input id="driverPhone" placeholder="+91 9876543210"></div>
-          <div class="form-group"><label>Price per KM (₹)</label><input id="carPrice" type="number" placeholder="15"></div>
-          <div class="form-group"><label>Quantity</label><input id="carQuantity" type="number" placeholder="5"></div>
-        </div>
-        <button class="add-btn" onclick="addCar()">Add Car</button>
+    <!-- Cars Tab -->
+    <div class="tabContent" id="cars">
+      <h3>Add New Car</h3>
+      <div class="addForm">
+        <input type="text" id="carName" placeholder="Car Name">
+        <input type="text" id="carNumber" placeholder="Car Number">
+        <input type="number" id="carPrice" placeholder="Price per day">
+        <input type="text" id="driverName" placeholder="Driver Name">
+        <input type="text" id="driverPhone" placeholder="Driver Phone">
+        <input type="number" id="carSeats" placeholder="Seats">
+        <select id="carAC">
+          <option value="AC">AC</option>
+          <option value="Non-AC">Non-AC</option>
+        </select>
+        <input type="text" id="carFuel" placeholder="Fuel Type">
+        <input type="number" id="carQuantity" placeholder="Quantity" value="1">
+        <input type="text" id="carImage" placeholder="Image URL">
+        <button class="addBtn" onclick="addCar()">Add Car</button>
       </div>
-      <h4>All Cars</h4>
-      <div id="carsList"></div>
-    </div>
-
-    <div id="drops" class="section">
-      <h3>Popular Drop Locations</h3>
-      <div class="card">
-        <h4>Add Drop Location</h4>
-        <div class="form-group"><label>Location Name</label><input id="dropName" placeholder="Durgapur Railway Station"></div>
-        <div class="form-group"><label>Address</label><input id="dropAddress" placeholder="Full Address"></div>
-        <button class="add-btn" onclick="addDrop()">Add Location</button>
-      </div>
-      <h4>All Drop Locations</h4>
-      <div id="dropsList"></div>
+      <h3>All Cars</h3>
+      <div class="carsGrid" id="carsGrid"></div>
     </div>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+    import { getDatabase, ref, set, get, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+
     const firebaseConfig = {
-      apiKey: "AIzaSyBbmHhNYPFLMgeCkMj07YoUdtM2bvD8-9o",
+      apiKey: "AIzaSyBySOEfSbkpl4csyqckfX-kLeIoD-85VYs",
       authDomain: "my-friend-hub.firebaseapp.com",
-      databaseURL: "https://my-friend-hub-default-rtdb.firebaseio.com",
+      databaseURL: "https://my-friend-hub-default-rtdb.asia-southeast1.firebasestorage.app",
       projectId: "my-friend-hub",
       storageBucket: "my-friend-hub.firebasestorage.app",
-      messagingSenderId: "1052688727503",
-      appId: "1:1052688727503:web:0a39c289e8b17966b4a6ee"
+      messagingSenderId: "1084141933087",
+      appId: "1:1084141933087:web:1ae757acdd37a9c8427b2a"
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const auth = firebase.auth();
 
-    auth.onAuthStateChanged(async user => {
-      if (user) {
-        const adminSnap = await db.ref('admins/' + user.uid).once('value');
-        if (adminSnap.exists()) {
-          document.getElementById('loginPanel').style.display = 'none';
-          document.getElementById('adminPanel').style.display = 'block';
-          document.getElementById('adminEmail').innerText = user.email;
-          loadBookings(); loadCars(); loadDrops();
-        } else {
-          document.getElementById('loginError').innerText = 'Access Denied. Admin only.';
-          auth.signOut();
-        }
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+    const adminEmails = ['khasbaskhalisa@gmail.com', 'joyrup@gmail.com'];
+
+    // Admin Login
+    window.adminLogin = async () => {
+      try { await signInWithPopup(auth, new GoogleAuthProvider()); } 
+      catch (err) { alert("Login Error: " + err.message); }
+    }
+
+    // Logout
+    window.adminLogout = () => { signOut(auth); }
+
+    // Auth Check
+    onAuthStateChanged(auth, async (user) => {
+      if (user && adminEmails.includes(user.email)) {
+        document.getElementById("loginBox").style.display = "none";
+        document.getElementById("mainApp").style.display = "block";
+        document.getElementById("adminName").textContent = user.displayName;
+        document.getElementById("adminPhoto").src = user.photoURL;
+        loadAllBookings();
+        loadAllCars();
+      } else if (user) {
+        alert("Admin Access Only");
+        signOut(auth);
       } else {
-        document.getElementById('loginPanel').style.display = 'block';
-        document.getElementById('adminPanel').style.display = 'none';
+        document.getElementById("loginBox").style.display = "flex";
+        document.getElementById("mainApp").style.display = "none";
       }
     });
 
-    function login() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
-    function logout() { auth.signOut(); }
-
-    function showTab(tabName, event) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    // Tab Switch
+    window.openTab = (tabName) => {
+      document.querySelectorAll('.tabBtn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tabContent').forEach(tab => tab.classList.remove('active'));
       event.target.classList.add('active');
       document.getElementById(tabName).classList.add('active');
     }
 
-    function loadBookings() {
-      db.ref("bookings").orderByChild("timestamp").on('value', (snap) => {
-        const div = document.getElementById("bookingsList");
-        div.innerHTML = "";
-        if (!snap.exists()) { div.innerHTML = "<p>No bookings yet</p>"; return; }
-        const bookings = [];
-        snap.forEach(child => bookings.push({id: child.key, ...child.val()}));
-        bookings.reverse().forEach(d => {
-          const date = new Date(d.timestamp).toLocaleString();
-          div.innerHTML += `
-            <div class="card">
-              <span class="status ${d.status}">${d.status.toUpperCase()}</span>
-              <p><b>User:</b> ${d.userName} (${d.userEmail})</p>
-              <p><b>Phone:</b> ${d.userPhone}</p>
-              <p><b>Car:</b> ${d.carName} - Driver: ${d.driverName} (${d.driverPhone})</p>
-              <p><b>Pickup:</b> ${d.pickup.address}</p>
-              <p><b>Drop:</b> ${d.drop.address}</p>
-              <p><b>Price:</b> ₹${d.price}/km</p>
-              <p><b>Time:</b> ${date}</p>
-              ${d.status === 'pending' ? `<button class="confirm-btn" onclick="updateStatus('${d.id}', 'confirmed')">Confirm</button><button class="cancel-btn" onclick="updateStatus('${d.id}', 'cancelled')">Cancel</button>` : ''}
-              <button class="delete-btn" onclick="deleteBooking('${d.id}')">Delete</button>
-            </div>`;
-        });
+    // Load All Bookings
+    async function loadAllBookings() {
+      onValue(ref(db, 'bookings'), async (snap) => {
+        const tbody = document.getElementById("bookingsTable");
+        tbody.innerHTML = "";
+        const bookings = snap.val() || {};
+        
+        for (const [key, booking] of Object.entries(bookings)) {
+          const userSnap = await get(ref(db, 'users/' + booking.userId));
+          const userData = userSnap.val() || {};
+          const userName = userData.name || 'Unknown';
+          const userPhone = userData.phone || 'N/A';
+          
+          tbody.innerHTML += `
+            <tr>
+              <td>${userName}</td>
+              <td>${userPhone}</td>
+              <td>${booking.carName || 'N/A'}</td>
+              <td>📍 ${booking.pickupLocation || 'N/A'} → ${booking.dropLocation || 'N/A'}</td>
+              <td><span class="status ${booking.status}">${booking.status.toUpperCase()}</span></td>
+              <td>${new Date(booking.timestamp).toLocaleString()}</td>
+              <td>
+                ${booking.status === 'pending' ? `
+                  <button class="actionBtn confirmBtn" onclick="updateBooking('${key}', 'confirmed')">Confirm</button>
+                  <button class="actionBtn cancelBtn" onclick="updateBooking('${key}', 'cancelled')">Cancel</button>
+                ` : '-'}
+              </td>
+            </tr>
+          `;
+        }
       });
     }
 
-    function updateStatus(id, status) { db.ref("bookings/" + id + "/status").set(status); }
-    function deleteBooking(id) { if (confirm('Delete this booking?')) db.ref("bookings/" + id).remove(); }
+    // Update Booking Status
+    window.updateBooking = async (bookingId, status) => {
+      await update(ref(db, 'bookings/' + bookingId), { status: status });
+      alert(Booking ${status}!);
+    }
 
-    async function addCar() {
-      const car = {
-        name: document.getElementById('carName').value,
-        number: document.getElementById('carNumber').value,
-        driverName: document.getElementById('driverName').value,
-        driverPhone: document.getElementById('driverPhone').value,
-        price: parseFloat(document.getElementById('carPrice').value),
-        quantity: parseInt(document.getElementById('carQuantity').value),
-        createdAt: firebase.database.ServerValue.TIMESTAMP
+    // Add Car
+    window.addCar = async () => {
+      const carData = {
+        name: document.getElementById("carName").value,
+        number: document.getElementById("carNumber").value,
+        price: document.getElementById("carPrice").value,
+        driverName: document.getElementById("driverName").value,
+        driverPhone: document.getElementById("driverPhone").value,
+        seats: document.getElementById("carSeats").value,
+        ac: document.getElementById("carAC").value,
+        fuel: document.getElementById("carFuel").value,
+        quantity: document.getElementById("carQuantity").value,
+        image: document.getElementById("carImage").value,
+        rating: "4.5"
       };
-      if (!car.name || !car.number || !car.driverName || !car.driverPhone || !car.price || !car.quantity) return alert('সব Field Fill কর');
-      await db.ref('cars').push(car);
-      alert('Car Added Successfully!');
-      document.getElementById('carName').value = ''; document.getElementById('carNumber').value = '';
-      document.getElementById('driverName').value = ''; document.getElementById('driverPhone').value = '';
-      document.getElementById('carPrice').value = ''; document.getElementById('carQuantity').value = '';
+      
+      if (Object.values(carData).some(v => !v)) return alert("সব Field ভর");
+      
+      await push(ref(db, 'cars'), carData);
+      alert("Car Added!");
+      document.querySelectorAll('.addForm input').forEach(inp => inp.value = '');
     }
 
-    function loadCars() {
-      db.ref("cars").orderByChild("createdAt").on('value', (snap) => {
-        const div = document.getElementById("carsList");
-        div.innerHTML = "";
-        if (!snap.exists()) { div.innerHTML = "<p>No cars added yet</p>"; return; }
-        const cars = [];
-        snap.forEach(child => cars.push({id: child.key, ...child.val()}));
-        cars.reverse().forEach(c => {
-          div.innerHTML += `
-            <div class="card">
-              <h4>${c.name} (${c.number})</h4>
-              <p><b>Driver:</b> ${c.driverName} - ${c.driverPhone}</p>
-              <p><b>Price:</b> ₹${c.price}/km</p>
-              <p><b>Available:</b> ${c.quantity} cars</p>
-              <button class="delete-btn" onclick="deleteCar('${c.id}')">Delete Car</button>
-            </div>`;
+    // Load All Cars
+    function loadAllCars() {
+      onValue(ref(db, 'cars'), (snap) => {
+        const grid = document.getElementById("carsGrid");
+        grid.innerHTML = "";
+        snap.forEach((child) => {
+          const car = child.val();
+          grid.innerHTML += `
+            <div class="carCard">
+              <button class="deleteBtn" onclick="deleteCar('${child.key}')">×</button>
+              <img src="${car.image}" class="carImg">
+              <div class="carInfo">
+                <h4>${car.name}</h4>
+                <p>₹${car.price}/day | ${car.seats} Seats</p>
+                <p>Qty: ${car.quantity} | ${car.ac}</p>
+              </div>
+            </div>
+          `;
         });
       });
     }
 
-    function deleteCar(id) { if (confirm('Delete this car?')) db.ref("cars/" + id).remove(); }
-
-    async function addDrop() {
-      const drop = {
-        name: document.getElementById('dropName').value,
-        address: document.getElementById('dropAddress').value,
-        createdAt: firebase.database.ServerValue.TIMESTAMP
-      };
-      if (!drop.name || !drop.address) return alert('সব Field Fill কর');
-      await db.ref('drops').push(drop);
-      alert('Drop Location Added!');
-      document.getElementById('dropName').value = ''; document.getElementById('dropAddress').value = '';
+    // Delete Car
+    window.deleteCar = async (carId) => {
+      if (confirm("Delete করবি?")) {
+        await remove(ref(db, 'cars/' + carId));
+        alert("Deleted!");
+      }
     }
-
-    function loadDrops() {
-      db.ref("drops").orderByChild("createdAt").on('value', (snap) => {
-        const div = document.getElementById("dropsList");
-        div.innerHTML = "";
-        if (!snap.exists()) { div.innerHTML = "<p>No drop locations added yet</p>"; return; }
-        const drops = [];
-        snap.forEach(child => drops.push({id: child.key, ...child.val()}));
-        drops.reverse().forEach(d => {
-          div.innerHTML += `<div class="card"><h4>${d.name}</h4><p>${d.address}</p><button class="delete-btn" onclick="deleteDrop('${d.id}')">Delete</button></div>`;
-        });
-      });
-    }
-
-    function deleteDrop(id) { if (confirm('Delete this location?')) db.ref("drops/" + id).remove(); }
   </script>
 </body>
 </html>
