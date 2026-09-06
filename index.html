@@ -1,109 +1,158 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QuickRide - Admin Panel</title>
-  <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick-Ride - Admin Dashboard</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- 🔐 Admin Login Screen -->
-  <div id="adminLoginScreen" class="auth-container">
-    <div class="auth-card">
-      <h1 class="logo">🛠️ Admin Portal</h1>
-      <p>Sign in with Admin Google Account</p>
-      <button id="adminLoginBtn" class="google-btn">
-        <img src="https://cdn-icons-png.flaticon.com/512/2991/2991148.png" alt="Google"> 
-        Admin Google Login
-      </button>
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div>
+                <div class="sidebar-logo">🚗 Admin Panel</div>
+                <nav class="sidebar-nav">
+                    <a href="#" class="nav-link active" onclick="switchAdminTab('orders', this)">Live Orders</a>
+                    <a href="#" class="nav-link" onclick="switchAdminTab('addCar', this)">Add Car & Stock</a>
+                </nav>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="admin-header">
+                <h2>Live Control Center</h2>
+            </header>
+
+            <section id="ordersSection" class="admin-section active">
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Car</th>
+                                <th>Route</th>
+                                <th>Phone</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminOrdersTable"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="addCarSection" class="admin-section">
+                <div class="card-box">
+                    <h3>Add New Fleet Vehicle with Quantity</h3>
+                    <div class="car-form">
+                        <input type="text" id="carName" placeholder="Car Name">
+                        <input type="number" id="carPrice" placeholder="Price per day ($)">
+                        <input type="number" id="carQty" placeholder="Quantity (Stock)" value="1">
+                        <input type="text" id="carImage" placeholder="Image URL">
+                        <button class="btn-primary" onclick="addNewCar()">Publish Car</button>
+                    </div>
+                </div>
+            </section>
+        </main>
     </div>
-  </div>
 
-  <!-- 🖥️ Admin Dashboard (Hidden before login) -->
-  <div id="adminDashboard" style="display: none;" class="dashboard-layout">
-    
-    <!-- Left Sidebar -->
-    <aside class="sidebar">
-      <div class="sidebar-logo">🛠️ QuickAdmin</div>
-      <nav class="sidebar-nav">
-        <a href="#" class="nav-link active" onclick="switchAdminTab('bookings', this)">📦 All Bookings</a>
-        <a href="#" class="nav-link" onclick="switchAdminTab('cars', this)">🚗 Manage Cars</a>
-      </nav>
-      <div class="sidebar-footer">
-        <button id="adminLogoutBtn" class="logout-btn">Logout</button>
-      </div>
-    </aside>
+    <!-- Notification Audio -->
+    <audio id="notifSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
-    <!-- Main Content Area -->
-    <main class="main-content">
-      <header class="admin-header">
-        <h2 id="pageTitle">Bookings Management</h2>
-        <div class="admin-profile">
-          <span id="adminName">Admin</span>
-        </div>
-      </header>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-      <!-- TAB 1: BOOKINGS -->
-      <section id="admin-tab-bookings" class="admin-section active">
-        <div class="table-container">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>User Info</th>
-                <th>Car Name</th>
-                <th>Route</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody id="adminBookingsTable">
-              <!-- Bookings loaded via JS -->
-            </tbody>
-          </table>
-        </div>
-      </section>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBySOEfSbkpl4csyqckfX-kLeIoD-85VYs",
+            authDomain: "my-friend-hub.firebaseapp.com",
+            databaseURL: "https://my-friend-hub-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "my-friend-hub",
+            storageBucket: "my-friend-hub.firebasestorage.app",
+            messagingSenderId: "1084141933087",
+            appId: "1:1084141933087:web:1ae757acdd37a9c8427b2a",
+            measurementId: "G-6E10B7M7WZ"
+        };
 
-      <!-- TAB 2: CARS MANAGEMENT -->
-      <section id="admin-tab-cars" class="admin-section">
-        <div class="card-box">
-          <h3>Add New Car</h3>
-          <form id="addCarForm" class="car-form">
-            <input type="text" id="carNameInput" placeholder="Car Name (e.g. Swift Dzire)" required>
-            <input type="number" id="carPriceInput" placeholder="Price per Day (₹)" required>
-            <input type="text" id="carImgInput" placeholder="Image URL" required>
-            <input type="number" id="carSeatsInput" placeholder="Seats (e.g. 5)" required>
-            <input type="text" id="carAcInput" placeholder="AC / Non-AC" required>
-            <input type="text" id="carFuelInput" placeholder="Fuel Type (Petrol/Diesel/EV)" required>
-            <input type="number" id="carQtyInput" placeholder="Stock Quantity" required>
-            <button type="submit" class="btn-primary">Add Car to Store</button>
-          </form>
-        </div>
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-        <h3 style="margin-top: 30px; margin-bottom: 15px;">Existing Fleet</h3>
-        <div id="adminCarsGrid" class="admin-cars-grid">
-          <!-- Fleet loaded via JS -->
-        </div>
-      </section>
+        let isFirstLoad = true;
 
-    </main>
-  </div>
+        function setupAdminLiveOrders() {
+            const tableBody = document.getElementById('adminOrdersTable');
+            const sound = document.getElementById('notifSound');
 
-  <!-- Load JS -->
-  <script type="module" src="app.js"></script>
-  
-  <!-- Global Tab Function -->
-  <script>
-    function switchAdminTab(tabId, element) {
-      document.querySelectorAll('.admin-section').forEach(sec => sec.classList.remove('active'));
-      document.querySelectorAll('.sidebar-nav .nav-link').forEach(link => link.classList.remove('active'));
-      
-      document.getElementById('admin-tab-' + tabId).classList.add('active');
-      element.classList.add('active');
-      
-      document.getElementById('pageTitle').textContent = tabId === 'bookings' ? 'Bookings Management' : 'Manage Cars';
-    }
-  </script>
+            onSnapshot(collection(db, "bookings"), (snapshot) => {
+                if (!isFirstLoad) {
+                    snapshot.docChanges().forEach((change) => {
+                        if (change.type === "added") {
+                            sound.play().catch(e => console.log("Audio play blocked:", e));
+                        }
+                    });
+                }
+                isFirstLoad = false;
+
+                tableBody.innerHTML = '';
+                snapshot.forEach((docSnap) => {
+                    const b = docSnap.data();
+                    const docId = docSnap.id;
+                    tableBody.innerHTML += `
+                        <tr>
+                            <td>${b.userName}</td>
+                            <td>${b.carName}</td>
+                            <td>${b.pickup} ➔ ${b.drop}</td>
+                            <td>${b.phone}</td>
+                            <td><span class="status-badge status-${b.status.toLowerCase()}">${b.status}</span></td>
+                            <td>
+                                <div class="action-btn-group">
+                                    <button class="btn-approve" onclick="updateStatus('${docId}', 'Confirmed')">Approve</button>
+                                    <button class="btn-reject" onclick="updateStatus('${docId}', 'Cancelled')">Reject</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+            });
+        }
+
+        window.updateStatus = async function(id, status) {
+            await updateDoc(doc(db, "bookings", id), { status });
+        }
+
+        window.addNewCar = async function() {
+            const name = document.getElementById('carName').value;
+            const price = document.getElementById('carPrice').value;
+            const quantity = parseInt(document.getElementById('carQty').value) || 1;
+            const image = document.getElementById('carImage').value;
+
+            if(!name || !price || !image) return alert('Please fill required fields!');
+
+            try {
+                await addDoc(collection(db, "cars"), { name, price, quantity, image });
+                alert('Car Added Successfully!');
+                document.getElementById('carName').value = '';
+                document.getElementById('carPrice').value = '';
+                document.getElementById('carQty').value = '1';
+                document.getElementById('carImage').value = '';
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        window.switchAdminTab = function(tab, el) {
+            document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            if(tab === 'orders') {
+                document.getElementById('ordersSection').classList.add('active');
+            } else {
+                document.getElementById('addCarSection').classList.add('active');
+            }
+            el.classList.add('active');
+        }
+
+        setupAdminLiveOrders();
+    </script>
 </body>
 </html>
