@@ -1,314 +1,108 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>QuickRide Admin Panel</title>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3097/3097180.png">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-      color: white; min-height: 100vh;
-      overflow-x: hidden;
-    }
-    
-    @keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-    @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-    .loginBox { 
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px);
-      display: flex; justify-content: center; align-items: center; z-index: 99999;
-    }
-    .loginCard {
-      background: rgba(30, 41, 59, 0.95); padding: 40px; border-radius: 28px;
-      text-align: center; border: 1px solid rgba(16, 163, 127, 0.5); 
-      max-width: 400px; width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-      animation: popIn 0.5s ease forwards;
-    }
-    .googleBtn { 
-      background: white; color: black; width: 100%; padding: 14px; border: none; 
-      border-radius: 35px; font-weight: 700; cursor: pointer; margin-top: 25px; font-size: 16px; 
-      display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.3s;
-    }
-    .googleBtn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(255,255,255,0.2); }
-    
-    .header {
-      background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(15px);
-      padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; 
-      position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-    .userInfo { display: flex; align-items: center; gap: 15px; }
-    .userInfo img { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #10a37f; }
-    .logoutBtn { background: transparent; border: 1px solid #ef4444; padding: 6px 15px; border-radius: 20px; color: #ef4444; cursor: pointer; transition: 0.3s; }
-    .logoutBtn:hover { background: #ef4444; color: white; }
-    
-    .mainContent { animation: slideIn 0.6s ease; max-width: 1400px; margin: 0 auto; padding: 20px; }
-    
-    .tabs { display: flex; gap: 15px; margin-bottom: 25px; }
-    .tabBtn {
-      background: #1e293b; border: 1px solid #334155; padding: 12px 25px; border-radius: 12px; 
-      color: #94a3b8; cursor: pointer; font-weight: 600; transition: all 0.3s ease;
-    }
-    .tabBtn:hover { background: #334155; color: white; }
-    .tabBtn.active { background: linear-gradient(135deg, #10a37f, #059669); color: white; border:none; box-shadow: 0 5px 15px rgba(16,163,127,0.3); }
-    
-    .tabContent { display: none; }
-    .tabContent.active { display: block; animation: slideIn 0.4s ease; }
-    
-    table { width: 100%; background: #1e293b; border-radius: 15px; overflow: hidden; border-collapse: collapse; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
-    th, td { padding: 15px; text-align: left; border-bottom: 1px solid #334155; }
-    th { background: #0f172a; font-weight: 600; font-size: 13px; text-transform: uppercase; color: #94a3b8; }
-    tr:hover { background: rgba(255,255,255,0.02); }
-    
-    .status { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; }
-    .pending { background: rgba(245, 158, 11, 0.2); color: #fcd34d; border: 1px solid #f59e0b; }
-    .confirmed { background: rgba(16, 163, 127, 0.2); color: #6ee7b7; border: 1px solid #10a37f; }
-    .cancelled { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid #ef4444; }
-    
-    .actionBtn { padding: 8px 15px; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; margin: 2px; transition: 0.3s; }
-    .confirmBtn { background: #10a37f; color: white; }
-    .confirmBtn:hover { background: #059669; }
-    .cancelBtn { background: transparent; border: 1px solid #ef4444; color: #ef4444; }
-    .cancelBtn:hover { background: #ef4444; color: white; }
-    
-    .addForm {
-      background: #1e293b; padding: 30px; border-radius: 20px; margin-bottom: 30px;
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px;
-      border: 1px solid #334155;
-    }
-    .addForm input, .addForm select {
-      padding: 14px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; 
-      color: white; outline: none; transition: 0.3s;
-    }
-    .addForm input:focus, .addForm select:focus { border-color: #10a37f; box-shadow: 0 0 10px rgba(16, 163, 127, 0.2); }
-    .addBtn { background: linear-gradient(135deg, #10a37f, #059669); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 700; cursor: pointer; grid-column: 1 / -1; font-size: 16px; transition: 0.3s; }
-    .addBtn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(16,163,127,0.4); }
-    
-    .carsGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
-    .carCard { background: #1e293b; border-radius: 15px; overflow: hidden; position: relative; border: 1px solid #334155; transition: 0.3s; }
-    .carCard:hover { transform: translateY(-5px); border-color: #10a37f; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
-    .carImg { width: 100%; height: 180px; object-fit: cover; }
-    .carInfo { padding: 20px; }
-    .deleteBtn { position: absolute; top: 12px; right: 12px; background: rgba(239, 68, 68, 0.9); color: white; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; font-size: 18px; transition: 0.3s; }
-    .deleteBtn:hover { background: #ef4444; transform: scale(1.1); }
-  </style>
+  <title>QuickRide - Admin Panel</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-  <div class="loginBox" id="loginBox">
-    <div class="loginCard">
-      <h2 style="color: #10a37f; font-size: 26px;">🔐 Admin Panel</h2>
-      <p style="color: #94a3b8; margin-top: 10px;">Authorized Access Only</p>
-      <button class="googleBtn" onclick="adminLogin()">
-        <img src="https://cdn-icons-png.flaticon.com/512/2991/2991148.png" style="width:20px;" alt="G">
-        Continue With Google
+  <!-- 🔐 Admin Login Screen -->
+  <div id="adminLoginScreen" class="auth-container">
+    <div class="auth-card">
+      <h1 class="logo">🛠️ Admin Portal</h1>
+      <p>Sign in with Admin Google Account</p>
+      <button id="adminLoginBtn" class="google-btn">
+        <img src="https://cdn-icons-png.flaticon.com/512/2991/2991148.png" alt="Google"> 
+        Admin Google Login
       </button>
     </div>
   </div>
 
-  <div id="mainApp" style="display:none;">
-    <div class="header">
-      <h2 style="color: #10a37f; margin: 0;">🚗 Admin Dashboard</h2>
-      <div class="userInfo">
-        <div style="text-align: right;">
-          <div id="adminName" style="font-size:15px; font-weight:600;"></div>
-          <button class="logoutBtn" onclick="adminLogout()">Logout</button>
+  <!-- 🖥️ Admin Dashboard (Hidden before login) -->
+  <div id="adminDashboard" style="display: none;" class="dashboard-layout">
+    
+    <!-- Left Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">🛠️ QuickAdmin</div>
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-link active" onclick="switchAdminTab('bookings', this)">📦 All Bookings</a>
+        <a href="#" class="nav-link" onclick="switchAdminTab('cars', this)">🚗 Manage Cars</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="adminLogoutBtn" class="logout-btn">Logout</button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <header class="admin-header">
+        <h2 id="pageTitle">Bookings Management</h2>
+        <div class="admin-profile">
+          <span id="adminName">Admin</span>
         </div>
-        <img id="adminPhoto" src="">
-      </div>
-    </div>
+      </header>
 
-    <div class="mainContent">
-      <div class="tabs">
-        <button class="tabBtn active" onclick="openTab('bookings')">📋 All Bookings</button>
-        <button class="tabBtn" onclick="openTab('cars')">🚗 Manage Cars</button>
-      </div>
-
-      <div class="tabContent active" id="bookings">
-        <h3 style="margin-bottom: 20px; color:#10a37f;">Recent User Bookings</h3>
-        <div style="overflow-x:auto;">
-          <table>
+      <!-- TAB 1: BOOKINGS -->
+      <section id="admin-tab-bookings" class="admin-section active">
+        <div class="table-container">
+          <table class="data-table">
             <thead>
               <tr>
-                <th>User Details</th>
-                <th>Phone</th>
+                <th>User Info</th>
                 <th>Car Name</th>
                 <th>Route</th>
-                <th>Payment</th>
                 <th>Status</th>
-                <th>Date & Time</th>
                 <th>Action</th>
               </tr>
             </thead>
-            <tbody id="bookingsTable"></tbody>
+            <tbody id="adminBookingsTable">
+              <!-- Bookings loaded via JS -->
+            </tbody>
           </table>
         </div>
-      </div>
+      </section>
 
-      <div class="tabContent" id="cars">
-        <h3 style="margin-bottom: 20px; color:#10a37f;">➕ Add New Car</h3>
-        <div class="addForm">
-          <input type="text" id="carName" placeholder="Car Name (e.g. Swift Dzire)">
-          <input type="text" id="carNumber" placeholder="Car Number (e.g. WB 74 XX 0000)">
-          <input type="number" id="carPrice" placeholder="Price per day (₹)">
-          <input type="text" id="driverName" placeholder="Driver Name">
-          <input type="text" id="driverPhone" placeholder="Driver Phone">
-          <input type="number" id="carSeats" placeholder="Seats (e.g. 4)">
-          <select id="carAC">
-            <option value="AC">AC</option>
-            <option value="Non-AC">Non-AC</option>
-          </select>
-          <input type="text" id="carFuel" placeholder="Fuel Type (Petrol/Diesel)">
-          <input type="number" id="carQuantity" placeholder="Available Quantity" value="1">
-          <input type="text" id="carImage" placeholder="Car Image URL">
-          <button class="addBtn" onclick="addCar()">+ Add Car To Fleet</button>
+      <!-- TAB 2: CARS MANAGEMENT -->
+      <section id="admin-tab-cars" class="admin-section">
+        <div class="card-box">
+          <h3>Add New Car</h3>
+          <form id="addCarForm" class="car-form">
+            <input type="text" id="carNameInput" placeholder="Car Name (e.g. Swift Dzire)" required>
+            <input type="number" id="carPriceInput" placeholder="Price per Day (₹)" required>
+            <input type="text" id="carImgInput" placeholder="Image URL" required>
+            <input type="number" id="carSeatsInput" placeholder="Seats (e.g. 5)" required>
+            <input type="text" id="carAcInput" placeholder="AC / Non-AC" required>
+            <input type="text" id="carFuelInput" placeholder="Fuel Type (Petrol/Diesel/EV)" required>
+            <input type="number" id="carQtyInput" placeholder="Stock Quantity" required>
+            <button type="submit" class="btn-primary">Add Car to Store</button>
+          </form>
         </div>
-        
-        <h3 style="margin-bottom: 20px; color:#10a37f;">🚗 Fleet Inventory</h3>
-        <div class="carsGrid" id="carsGrid"></div>
-      </div>
-    </div>
+
+        <h3 style="margin-top: 30px; margin-bottom: 15px;">Existing Fleet</h3>
+        <div id="adminCarsGrid" class="admin-cars-grid">
+          <!-- Fleet loaded via JS -->
+        </div>
+      </section>
+
+    </main>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
-    import { getDatabase, ref, set, get, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBySOEfSbkpl4csyqckfX-kLeIoD-85VYs",
-      authDomain: "my-friend-hub.firebaseapp.com",
-      databaseURL: "https://my-friend-hub-default-rtdb.asia-southeast1.firebasestorage.app",
-      projectId: "my-friend-hub",
-      storageBucket: "my-friend-hub.firebasestorage.app",
-      messagingSenderId: "1084141933087",
-      appId: "1:1084141933087:web:1ae757acdd37a9c8427b2a"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
-    // আপডেট করা ইমেইল লিস্ট
-    const adminEmails = ['khasbaskhalisa@gmail.com', 'joyrupsaha2012@gmail.com'];
-
-    window.adminLogin = async () => {
-      try { await signInWithPopup(auth, new GoogleAuthProvider()); } 
-      catch (err) { alert("Login Error: " + err.message); }
-    }
-
-    window.adminLogout = () => { signOut(auth); }
-
-    onAuthStateChanged(auth, async (user) => {
-      if (user && adminEmails.includes(user.email)) {
-        document.getElementById("loginBox").style.display = "none";
-        document.getElementById("mainApp").style.display = "block";
-        document.getElementById("adminName").textContent = user.displayName;
-        document.getElementById("adminPhoto").src = user.photoURL || "https://via.placeholder.com/40";
-        loadAllBookings();
-        loadAllCars();
-      } else if (user) {
-        alert("Access Denied: Admin Rights Required");
-        signOut(auth);
-      } else {
-        document.getElementById("loginBox").style.display = "flex";
-        document.getElementById("mainApp").style.display = "none";
-      }
-    });
-
-    window.openTab = (tabName) => {
-      document.querySelectorAll('.tabBtn').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.tabContent').forEach(tab => tab.classList.remove('active'));
-      event.target.classList.add('active');
-      document.getElementById(tabName).classList.add('active');
-    }
-
-    function loadAllBookings() {
-      onValue(ref(db, 'bookings'), (snap) => {
-        const tbody = document.getElementById("bookingsTable");
-        tbody.innerHTML = "";
-        const bookings = snap.val() || {};
-        
-        const sortedBookings = Object.entries(bookings).sort((a, b) => b[1].timestamp - a[1].timestamp);
-
-        for (const [key, booking] of sortedBookings) {
-          tbody.innerHTML += `
-            <tr>
-              <td style="color:white; font-weight:600;">${booking.userName || 'Unknown'}</td>
-              <td style="color:#6ee7b7;">${booking.userPhone || 'N/A'}</td>
-              <td style="color:#cbd5e1;">${booking.carName || 'N/A'}</td>
-              <td style="font-size:13px;">📍 ${booking.pickupLocation}<br>🏁 ${booking.dropLocation}</td>
-              <td style="font-size:13px;">${booking.paymentMethod}</td>
-              <td><span class="status ${booking.status}">${booking.status.toUpperCase()}</span></td>
-              <td style="font-size:12px; color:#94a3b8;">${new Date(booking.timestamp).toLocaleString()}</td>
-              <td>
-                ${booking.status === 'pending' ? `
-                  <button class="actionBtn confirmBtn" onclick="updateBooking('${key}', 'confirmed')">Confirm</button>
-                  <button class="actionBtn cancelBtn" onclick="updateBooking('${key}', 'cancelled')">Cancel</button>
-                ` : '-'}
-              </td>
-            </tr>
-          `;
-        }
-      });
-    }
-
-    window.updateBooking = async (bookingId, status) => {
-      if(confirm(`Are you sure you want to mark this booking as ${status}?`)) {
-        await update(ref(db, 'bookings/' + bookingId), { status: status });
-      }
-    }
-
-    window.addCar = async () => {
-      const carData = {
-        name: document.getElementById("carName").value,
-        number: document.getElementById("carNumber").value,
-        price: document.getElementById("carPrice").value,
-        driverName: document.getElementById("driverName").value,
-        driverPhone: document.getElementById("driverPhone").value,
-        seats: document.getElementById("carSeats").value,
-        ac: document.getElementById("carAC").value,
-        fuel: document.getElementById("carFuel").value,
-        quantity: document.getElementById("carQuantity").value,
-        image: document.getElementById("carImage").value
-      };
+  <!-- Load JS -->
+  <script type="module" src="app.js"></script>
+  
+  <!-- Global Tab Function -->
+  <script>
+    function switchAdminTab(tabId, element) {
+      document.querySelectorAll('.admin-section').forEach(sec => sec.classList.remove('active'));
+      document.querySelectorAll('.sidebar-nav .nav-link').forEach(link => link.classList.remove('active'));
       
-      if (Object.values(carData).some(v => !v)) return alert("দয়া করে সব Field ঠিকমতো পূরণ কর!");
+      document.getElementById('admin-tab-' + tabId).classList.add('active');
+      element.classList.add('active');
       
-      await push(ref(db, 'cars'), carData);
-      alert("✅ New Car Added to Fleet!");
-      document.querySelectorAll('.addForm input').forEach(inp => inp.value = '');
-    }
-
-    function loadAllCars() {
-      onValue(ref(db, 'cars'), (snap) => {
-        const grid = document.getElementById("carsGrid");
-        grid.innerHTML = "";
-        snap.forEach((child) => {
-          const car = child.val();
-          grid.innerHTML += `
-            <div class="carCard">
-              <button class="deleteBtn" onclick="deleteCar('${child.key}')">×</button>
-              <img src="${car.image || 'https://via.placeholder.com/300x180'}" class="carImg">
-              <div class="carInfo">
-                <h4 style="font-size:18px; margin-bottom:5px;">${car.name}</h4>
-                <p style="color:#94a3b8; font-size:13px; margin-bottom:10px;">${car.number}</p>
-                <p style="color:#cbd5e1; margin-bottom:5px;">💰 ₹${car.price}/day | 💺 ${car.seats} Seats</p>
-                <p style="font-size:13px; color:#10a37f;">Qty: ${car.quantity} | ${car.ac}</p>
-                <hr style="border:0; border-top:1px solid #334155; margin:10px 0;">
-                <p style="font-size:12px; color:#94a3b8;">Driver: ${car.driverName} (${car.driverPhone})</p>
-              </div>
-            </div>
-          `;
-        });
-      });
-    }
-
-    window.deleteCar = async (carId) => {
-      if (confirm("এই গাড়িটি কি লিস্ট থেকে ডিলিট করতে চাস?")) {
-        await remove(ref(db, 'cars/' + carId));
-      }
+      document.getElementById('pageTitle').textContent = tabId === 'bookings' ? 'Bookings Management' : 'Manage Cars';
     }
   </script>
 </body>
