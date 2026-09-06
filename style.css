@@ -16,7 +16,7 @@ body { background-color: #f1f3f6; color: #212121; }
 .logo { font-size: 24px; font-weight: 700; color: var(--admin-primary); margin-bottom: 10px; }
 .auth-card p { color: #878787; margin-bottom: 30px; font-size: 14px; }
 .google-btn { width: 100%; background: white; border: 1px solid var(--border); padding: 12px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; }
-.google-btn img { width: 20px; }
+.google-btn img { width: 20px !important; height: 20px !important; object-fit: contain; }
 
 /* Dashboard Layout */
 .dashboard-layout { display: flex; height: 100vh; overflow: hidden; }
